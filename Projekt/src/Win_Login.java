@@ -37,6 +37,7 @@ public class Win_Login extends JFrame{
         this.setSize(500, 350);
         this.setResizable(false);
         iconAvatar.setIcon(Avatar);
+        setLocationRelativeTo(null);
 
         BtnSignIn.addActionListener(new ActionListener() {
             @Override

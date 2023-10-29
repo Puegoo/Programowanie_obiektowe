@@ -109,7 +109,9 @@
             <preferred-size width="320" height="30"/>
           </grid>
         </constraints>
-        <properties/>
+        <properties>
+          <enabled value="true"/>
+        </properties>
       </component>
       <component id="117" class="javax.swing.JLabel">
         <constraints>
@@ -187,7 +189,7 @@
         </constraints>
         <properties>
           <font size="11" style="2"/>
-          <text value="      "/>
+          <text value="        "/>
         </properties>
       </component>
     </children>

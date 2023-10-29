@@ -1,7 +1,5 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 public class Win_Login extends JFrame{
     private JLabel iconAvatar;
@@ -39,31 +37,25 @@ public class Win_Login extends JFrame{
         iconAvatar.setIcon(Avatar);
         setLocationRelativeTo(null);
 
-        BtnSignIn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String temporary_Login = textLogin.getText().toLowerCase();
-                String temporary_Passwd = new String(textPasswd.getPassword());
+        BtnSignIn.addActionListener(e -> {
+            String temporary_Login = textLogin.getText().toLowerCase();
+            String temporary_Passwd = new String(textPasswd.getPassword());
 
-                if (temporary_Login.isEmpty()){
-                    labelError.setText("Wprowadź login!!! ");
-                }else if (temporary_Passwd.isEmpty()) {
-                    labelError.setText("Wprowadź hasło!!! ");
-                }else if (!temporary_Login.equals(login.toLowerCase()) || !temporary_Passwd.equals(password)) {
-                    labelError.setForeground(new Color(240, 10, 10));
-                    labelError.setText("Błąd!!! ");
-                }else {
-                    labelError.setText("Brawo!!! ");
-                }
+            if (temporary_Login.isEmpty()){
+                labelError.setText("Wprowadź login!!! ");
+            }else if (temporary_Passwd.isEmpty()) {
+                labelError.setText("Wprowadź hasło!!! ");
+            }else if (!temporary_Login.equals(login.toLowerCase()) || !temporary_Passwd.equals(password)) {
+                labelError.setForeground(new Color(240, 10, 10));
+                labelError.setText("Błąd!!! ");
+            }else {
+                labelError.setText("Brawo!!! ");
             }
         });
 
-        BtnSignUp.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                dispose();
-                new Win_Register().setVisible(true);
-            }
+        BtnSignUp.addActionListener(e -> {
+            dispose();
+            new Win_Register().setVisible(true);
         });
     }
 }

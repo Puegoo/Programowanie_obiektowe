@@ -107,6 +107,7 @@ public class Win_Register extends JFrame{
         iconAvatar.setIcon(Avatar);
         setLocationRelativeTo(null);
 
+
         ButtonGroup genderGroup = new ButtonGroup();
         genderGroup.add(maleRadioBtn);
         genderGroup.add(femaleRadioBtn);

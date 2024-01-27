@@ -18,7 +18,8 @@ public class Win_Log extends JFrame {
     ImageIcon Unity_bank = new ImageIcon("icons/UnityBankWel.png");
     ImageIcon Avatar = new ImageIcon("icons/avatarLogin.png");
 
-    public static void main(String[] args) {
+    public static void main(String[] args)
+    {
         Win_Log login = new Win_Log();
         login.setVisible(true);
     }

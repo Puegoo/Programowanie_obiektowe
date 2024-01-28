@@ -1,40 +1,11 @@
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 import java.awt.*;
-import java.awt.event.*;
-
-import javax.swing.*;
-import java.awt.*;
-import java.sql.*;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
-import java.sql.*;
-
-import javax.swing.*;
-import javax.swing.border.LineBorder;
-import java.awt.*;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
-import java.sql.*;
-
-import javax.swing.*;
-import javax.swing.border.LineBorder;
-import java.awt.*;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.sql.*;
 import java.util.Random;
-
-import javax.swing.*;
-import javax.swing.border.LineBorder;
-import java.awt.*;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
-import java.sql.*;
-import java.util.Random;
+import java.util.function.Predicate;
 
 public class Win_Register extends JFrame {
     private JPanel mainPanel;
@@ -53,8 +24,6 @@ public class Win_Register extends JFrame {
     private JLabel labelInfo;
     ImageIcon Avatar = new ImageIcon("icons/avatarRegister.png");
 
-    boolean createAccount = false;
-
     public static void main(String[] args) {
         Win_Register register = new Win_Register();
         register.setVisible(true);
@@ -62,10 +31,10 @@ public class Win_Register extends JFrame {
 
     public Win_Register() {
         super("Register");
-        this.setContentPane(this.mainPanel);
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setSize(550, 600);
-        this.setResizable(false);
+        setContentPane(mainPanel);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(550, 600);
+        setResizable(false);
         iconAvatar.setIcon(Avatar);
         setLocationRelativeTo(null);
 
@@ -73,78 +42,154 @@ public class Win_Register extends JFrame {
         genderGroup.add(maleRadioBtn);
         genderGroup.add(femaleRadioBtn);
 
-        maleRadioBtn.addActionListener(e -> {
-            Avatar = new ImageIcon("icons/avatarMan.png");
-            iconAvatar.setIcon(Avatar);
-        });
-
-        femaleRadioBtn.addActionListener(e -> {
-            Avatar = new ImageIcon("icons/avatarWoman.png");
-            iconAvatar.setIcon(Avatar);
-        });
+        maleRadioBtn.addActionListener(e -> iconAvatar.setIcon(new ImageIcon("icons/avatarMan.png")));
+        femaleRadioBtn.addActionListener(e -> iconAvatar.setIcon(new ImageIcon("icons/avatarWoman.png")));
 
         BtnCreate.addActionListener(e -> {
-            if (createAccount) {
-                if (femaleRadioBtn.isSelected() || maleRadioBtn.isSelected()) {
-                    try {
-                        String gender = maleRadioBtn.isSelected() ? "M" : "F";
-                        String login = textLogin.getText();
-                        String name = textName.getText();
-                        String surname = textSurname.getText();
-                        String email = textEmail.getText();
-                        String password = new String(textPasswd1.getPassword());
-
-                        if (insertUser(login, name, surname, password, email, gender)) {
-                            labelInfo.setForeground(new Color(0, 128, 0));
-                            labelInfo.setText("Rejestracja pomyślna!");
-                            new Win_Log().setVisible(true);
-                            dispose();
-                        } else {
-                            labelInfo.setForeground(new Color(240, 10, 10));
-                            labelInfo.setText("Błąd rejestracji.");
-                        }
-                    } catch (SQLException ex) {
+            if (validateAllFields()) {
+                try {
+                    String gender = maleRadioBtn.isSelected() ? "M" : "F";
+                    if (insertUser(textLogin.getText(), textName.getText(), textSurname.getText(), new String(textPasswd1.getPassword()), textEmail.getText(), gender)) {
+                        labelInfo.setForeground(new Color(0, 128, 0));
+                        labelInfo.setText("Rejestracja pomyślna!");
+                        new Win_Log().setVisible(true);
+                        dispose();
+                    } else {
                         labelInfo.setForeground(new Color(240, 10, 10));
-                        labelInfo.setText("Błąd bazy danych: " + ex.getMessage());
+                        labelInfo.setText("Błąd rejestracji.");
                     }
-                } else {
+                } catch (SQLException ex) {
                     labelInfo.setForeground(new Color(240, 10, 10));
-                    labelInfo.setText("Podaj płeć!");
+                    labelInfo.setText("Błąd bazy danych: " + ex.getMessage());
                 }
             }
         });
 
-        BtnClear.addActionListener(e -> {
-            textLogin.setText("");
-            textName.setText("");
-            textSurname.setText("");
-            textPasswd1.setText("");
-            textPasswd2.setText("");
-            textEmail.setText("");
-            genderGroup.clearSelection();
-            Avatar = new ImageIcon("icons/avatarRegister.png");
-            iconAvatar.setIcon(Avatar);
-            labelInfo.setText("");
-        });
-
+        BtnClear.addActionListener(e -> clearForm(genderGroup));
         BtnBack.addActionListener(e -> {
             new Win_Log().setVisible(true);
             dispose();
         });
 
-        textLogin.addFocusListener(new MyFocusListener(textLogin));
-        textName.addFocusListener(new MyFocusListener(textName));
-        textSurname.addFocusListener(new MyFocusListener(textSurname));
-        textPasswd1.addFocusListener(new MyFocusListener(textPasswd1));
-        textPasswd2.addFocusListener(new MyFocusListener(textPasswd2));
-        textEmail.addFocusListener(new MyFocusListener(textEmail));
+        setupValidation();
+    }
+
+    private void clearForm(ButtonGroup genderGroup) {
+        textLogin.setText("");
+        textName.setText("");
+        textSurname.setText("");
+        textPasswd1.setText("");
+        textPasswd2.setText("");
+        textEmail.setText("");
+        genderGroup.clearSelection();
+        iconAvatar.setIcon(new ImageIcon("icons/avatarRegister.png"));
+        labelInfo.setText("");
+
+        resetBorder(textLogin);
+        resetBorder(textName);
+        resetBorder(textSurname);
+        resetBorder(textPasswd1);
+        resetBorder(textPasswd2);
+        resetBorder(textEmail);
+    }
+
+    private void resetBorder(JComponent component) {
+        component.setBorder(UIManager.getBorder("TextField.border"));
+    }
+
+    private void setupValidation() {
+        textLogin.addFocusListener(new ValidationFocusListener(textLogin, this::validateLogin));
+        textName.addFocusListener(new ValidationFocusListener(textName, this::validateNotEmpty));
+        textSurname.addFocusListener(new ValidationFocusListener(textSurname, this::validateNotEmpty));
+        textPasswd1.addFocusListener(new ValidationFocusListener(textPasswd1, this::validatePassword));
+        textPasswd2.addFocusListener(new ValidationFocusListener(textPasswd2, (component) -> validatePasswordMatch()));
+        textEmail.addFocusListener(new ValidationFocusListener(textEmail, this::validateEmail));
+    }
+
+    private boolean validateAllFields() {
+        boolean loginValid = validateLogin(textLogin);
+        boolean nameValid = validateNotEmpty(textName);
+        boolean surnameValid = validateNotEmpty(textSurname);
+        boolean passwordValid = validatePassword(textPasswd1);
+        boolean passwordMatchValid = validatePasswordMatch();
+        boolean emailValid = validateEmail(textEmail);
+        return loginValid && nameValid && surnameValid && passwordValid && passwordMatchValid && emailValid;
+    }
+
+    private boolean validateLogin(JComponent component) {
+        try {
+            JTextField textField = (JTextField) component;
+            String login = textField.getText();
+            if (login.length() < 5 || !isLoginAvailable(login)) {
+                setError(textField, "Login is too short or unavailable");
+                return false;
+            }
+            setSuccess(textField);
+            return true;
+        } catch (SQLException ex) {
+            setError(component, "Database error");
+            return false;
+        }
+    }
+
+    private boolean validateNotEmpty(JComponent component) {
+        JTextField textField = (JTextField) component;
+        if (textField.getText().isEmpty()) {
+            setError(textField, "Field cannot be empty");
+            return false;
+        }
+        setSuccess(textField);
+        return true;
+    }
+
+    private boolean validatePassword(JComponent component) {
+        JPasswordField passwordField = (JPasswordField) component;
+        String password = new String(passwordField.getPassword());
+        if (!(password.matches(".*[A-Z].*") && password.matches(".*[a-z].*") && password.matches(".*\\d.*") && password.length() >= 8)) {
+            setError(passwordField, "Password does not meet criteria");
+            return false;
+        }
+        setSuccess(passwordField);
+        return true;
+    }
+
+    private boolean validatePasswordMatch() {
+        String password = new String(textPasswd1.getPassword());
+        String confirmPassword = new String(textPasswd2.getPassword());
+        if (!confirmPassword.equals(password)) {
+            setError(textPasswd2, "Passwords do not match");
+            return false;
+        }
+        setSuccess(textPasswd2);
+        return true;
+    }
+
+    private boolean validateEmail(JComponent component) {
+        JTextField textField = (JTextField) component;
+        String email = textField.getText();
+        if (!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+            setError(textField, "Invalid email address");
+            return false;
+        }
+        setSuccess(textField);
+        return true;
+    }
+
+    private boolean isLoginAvailable(String login) throws SQLException {
+        String query = "SELECT COUNT(*) FROM Users WHERE Login = ?";
+        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/unity_bank", "root", "");
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, login);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next() && rs.getInt(1) == 0;
+            }
+        }
     }
 
     private boolean insertUser(String login, String name, String surname, String password, String email, String gender) throws SQLException {
         String accountNumber = generateAccountNumber();
         try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/unity_bank", "root", "");
              PreparedStatement stmt = conn.prepareStatement("INSERT INTO Users (Login, Imie, Nazwisko, Haslo, Email, Plec, NumerRachunku) VALUES (?, ?, ?, ?, ?, ?, ?)")) {
-
             stmt.setString(1, login);
             stmt.setString(2, name);
             stmt.setString(3, surname);
@@ -152,8 +197,7 @@ public class Win_Register extends JFrame {
             stmt.setString(5, email);
             stmt.setString(6, gender);
             stmt.setString(7, accountNumber);
-            int affectedRows = stmt.executeUpdate();
-            return affectedRows > 0;
+            return stmt.executeUpdate() > 0;
         }
     }
 
@@ -166,77 +210,32 @@ public class Win_Register extends JFrame {
         return sb.toString();
     }
 
-    private class MyFocusListener implements FocusListener {
-        private final JTextField addattribute;
+    private void setError(JComponent component, String message) {
+        component.setBorder(new LineBorder(Color.RED));
+        labelInfo.setForeground(Color.RED);
+        labelInfo.setText(message);
+    }
 
-        public MyFocusListener(JTextField attribute) {
-            this.addattribute = attribute;
+    private void setSuccess(JComponent component) {
+        component.setBorder(UIManager.getBorder("TextField.border"));
+        labelInfo.setText("");
+    }
+
+    private class ValidationFocusListener implements FocusListener {
+        private final JComponent component;
+        private final Predicate<JComponent> validationFunction;
+
+        public ValidationFocusListener(JComponent component, Predicate<JComponent> validationFunction) {
+            this.component = component;
+            this.validationFunction = validationFunction;
         }
 
         @Override
-        public void focusGained(FocusEvent e) {
-        }
+        public void focusGained(FocusEvent e) {}
 
         @Override
         public void focusLost(FocusEvent e) {
-            if (addattribute.equals(textLogin)) {
-                if (textLogin.getText().length() < 5) {
-                    errorInfo(textLogin, "Login powinien mieć co najmniej 5 znaków!");
-                } else {
-                    correctInfo(textLogin);
-                }
-            } else if (addattribute.equals(textName)) {
-                if (textName.getText().isEmpty()) {
-                    errorInfo(textName, "Wprowadź dane!");
-                } else {
-                    correctInfo(textName);
-                }
-            } else if (addattribute.equals(textSurname)) {
-                if (textSurname.getText().isEmpty()) {
-                    errorInfo(textSurname, "Wprowadź dane!");
-                } else {
-                    correctInfo(textSurname);
-                }
-            } else if (addattribute.equals(textPasswd1)) {
-                String passwd = new String(textPasswd1.getPassword());
-                if (passwd.matches(".*[A-Z].*") && passwd.matches(".*[a-z].*") && passwd.matches(".*\\d.*") && passwd.length() >= 8) {
-                    correctInfo(textPasswd1);
-                } else {
-                    errorInfo(textPasswd1, "Wprowadź poprawne hasło");
-                }
-            } else if (addattribute.equals(textPasswd2)) {
-                String passwd1 = new String(textPasswd1.getPassword());
-                String passwd2 = new String(textPasswd2.getPassword());
-                if (!passwd1.isEmpty()) {
-                    if (!passwd2.equals(passwd1)) {
-                        errorInfo(textPasswd2, "Hasła nie są jednakowe!");
-                    } else {
-                        correctInfo(textPasswd2);
-                    }
-                }
-            } else if (addattribute.equals(textEmail)) {
-                if (!textEmail.getText().contains("@") || textEmail.getText().lastIndexOf(".") < textEmail.getText().length() - 3) {
-                    errorInfo(textEmail, "Podany adres email jest nieprawidłowy!");
-                } else {
-                    correctInfo(textEmail);
-                }
-            }
-        }
-    }
-
-    private void errorInfo(JTextField object, String message) {
-        object.setBorder(new LineBorder(Color.RED));
-        labelInfo.setForeground(new Color(240, 10, 10));
-        labelInfo.setText(message);
-        createAccount = false;
-    }
-
-    private void correctInfo(JTextField object) {
-        object.setBorder(new LineBorder(Color.GREEN));
-        labelInfo.setText(" ");
-        if (!textLogin.getText().isEmpty() && !textName.getText().isEmpty() && !textSurname.getText().isEmpty() && !textEmail.getText().isEmpty()) {
-            createAccount = true;
+            validationFunction.test(component);
         }
     }
 }
-
